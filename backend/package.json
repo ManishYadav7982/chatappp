@@ -8,6 +8,7 @@
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "chatapp": "file:..",
+    "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

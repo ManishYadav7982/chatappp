@@ -3,7 +3,10 @@ import bcrypt from 'bcryptjs';
 import { generateToken } from '../lib/utils.js';
 import { senderWelcomeEmail } from '../emails/emailsHandlers.js';
 import dot from 'dotenv';
+import cloudinary from '../lib/cloudinary.js';
 dot.config();
+
+
 
 export const signUp = async (req, res) => {
     const { fullname, email, password } = req.body;
@@ -51,7 +54,7 @@ export const signUp = async (req, res) => {
                 message: "User created successfully"
             });
 
-            
+
             //send welcome email to the user
             try {
                 await senderWelcomeEmail(newUser.email, newUser.fullname, process.env.CLIENT_URL);
@@ -79,9 +82,9 @@ export const login = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!email || !password) {
-            return  res.status(400).json({ message: "All fields are required" });
+            return res.status(400).json({ message: "All fields are required" });
         }
-        
+
 
         if (!user) {
             return res.status(400).json({ message: "Invalid credentials" });
@@ -113,6 +116,30 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (_, res) => {
-    res.cookie("jwt", "", {maxAge:0}); //overwriting the cookie with empty value and immediate expiry
+    res.cookie("jwt", "", { maxAge: 0 }); //overwriting the cookie with empty value and immediate expiry
     res.status(200).json({ message: "Logout successful" });
+};
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { profilePic } = req.body;
+
+        if (!profilePic) {
+            return res.status(400).json({ message: "Profile picture is required" });
+        }
+
+        const userId = req.user._id;
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+
+        const updatedUser = await User.findByIdAndUpdate(userId, { profilePic: uploadResponse.secure_url }, { new: true });
+
+        res.status(200).json(updatedUser);
+
+    }
+
+    catch (error) {
+        console.log("Error in updateProfile controller: ", error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+
 };

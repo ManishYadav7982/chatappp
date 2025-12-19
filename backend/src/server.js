@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieparser from 'cookie-parser';
 import Path from 'path';
 import dotenv from 'dotenv';
 import { connectDB } from './lib/db.js';
@@ -15,6 +16,7 @@ const __dirname = Path.resolve();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json()); // Middleware to parse JSON request bodies
+app.use(cookieparser());
 
 app.use("/api/auth" , authRoutes);
 app.use("/api/message" , messageRoutes);
