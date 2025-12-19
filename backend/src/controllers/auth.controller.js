@@ -11,7 +11,7 @@ export const signUp = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        
+
 
         if (!email.includes("@")) {
             return res.status(400).json({ message: "Please enter a valid email" });
@@ -35,11 +35,11 @@ export const signUp = async (req, res) => {
 
         if (newUser) {
 
-             await newUser.save();
+            await newUser.save();
             generateToken(newUser._id, res);
             //generate token for the user
 
-           
+
             res.status(201).json({
                 _id: newUser._id,
                 fullname: newUser.fullname,
@@ -62,4 +62,44 @@ export const signUp = async (req, res) => {
     }
 
 
+};
+
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid credentials" });
+            //never tell the the client whether its email or password is incorrect
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        generateToken(user._id, res);
+
+        res.status(200).json({
+            _id: user._id,
+            fullname: user.fullname,
+            email: user.email,
+            profilePic: user.profilePic,
+            message: "Login successful"
+        });
+
+
+    }
+    catch (error) {
+        console.log("Error in login controller: ", error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+
+};
+
+export const logout = async (_, res) => {
+    res.cookie("jwt", "", {maxAge:0}); //overwriting the cookie with empty value and immediate expiry
+    res.status(200).json({ message: "Logout successful" });
 };
