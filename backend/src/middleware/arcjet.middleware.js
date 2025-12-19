@@ -32,8 +32,10 @@ export const arcjetMiddleware = async (req, res, next) => {
 
 
     } catch (error) {
-        console.log("Error in Arcjet middleware: ", error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("Error in Arcjet middleware:", error);
+        if(process.env.NODE_ENV === 'production'){
+            return res.status(500).json({ message: "Internal server error." });
+        }
         next();
 
     }
