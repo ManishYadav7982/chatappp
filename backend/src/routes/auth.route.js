@@ -12,7 +12,6 @@ const router = express.Router();
 router.use(arcjetMiddleware);
 
 
-
 router.post("/signup" , signUp );
 router.post("/login" , login) ;
 router.post("/logout", logout) ;
