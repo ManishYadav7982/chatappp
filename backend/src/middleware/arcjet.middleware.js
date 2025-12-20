@@ -1,4 +1,4 @@
-import aj from "./lib/arcjet.js";
+import aj from "../lib/arcjet.js";
 
 import { isSpoofedBot } from "@arcjet/inspect";
 
