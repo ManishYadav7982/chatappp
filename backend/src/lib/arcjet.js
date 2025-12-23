@@ -24,9 +24,13 @@ const aj = arcjet({
     slidingWindow({
       mode: MODE,
       interval: 60, //  seconds
-      max: 100,     //  requests per interval
+      max: 1000,     //  requests per interval
     }),
   ],
 });
 
 export default aj;
+
+
+
+

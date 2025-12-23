@@ -19,7 +19,7 @@ app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cookieparser());
 
 app.use("/api/auth" , authRoutes);
-app.use("/api/message" , messageRoutes);
+app.use("/api/messages" , messageRoutes);
 
 
 //make ready for depoyment
