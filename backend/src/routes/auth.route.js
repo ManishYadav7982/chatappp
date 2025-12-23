@@ -9,7 +9,7 @@ import { arcjetMiddleware } from '../middleware/arcjet.middleware.js';
 
 // Define your authentication routes here
 const router = express.Router();
-router.use(arcjetMiddleware);
+//router.use(arcjetMiddleware);
 
 
 router.post("/signup" , signUp );
