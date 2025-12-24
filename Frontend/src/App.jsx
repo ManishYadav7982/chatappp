@@ -1,35 +1,60 @@
-import React from 'react'
-import { Route, Routes } from 'react-router'
-import SignUpPage from './pages/SignUpPage.jsx'
-import LoginPage from './pages/LoginPage.jsx'
-import ChatPage from './pages/ChatPage.jsx'
+import React, { useEffect } from "react";
+import { Route, Routes, Navigate } from "react-router";
 
+import SignUpPage from "./pages/SignUpPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import ChatPage from "./pages/ChatPage.jsx";
+import PageLoader from "./components/PageLoader.jsx";
+
+import { useAuthStore } from "./store/useAuthStore.js";
+import { Toaster } from "react-hot-toast";
 
 function App() {
-  return (
+  const { authUser, isCheckingAuth, checkAuth } = useAuthStore();
 
-     <div className="min-h-screen bg-slate-900 relative overflow-hidden flex items-center justify-center">
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // ⏳ Optional loading state
+  if (isCheckingAuth) {
+    return <PageLoader />;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 relative overflow-hidden flex items-center justify-center">
       
       {/* Background effects */}
       <div className="absolute inset-0 -z-10">
-        {/* purple glow */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500 opacity-20 blur-[120px]" />
-        
-        {/* cyan glow */}
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500 opacity-20 blur-[120px]" />
-        
-        {/* grid overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
-      {/* Routes stay EXACTLY same */}
-    <Routes>
-      <Route path="/signup" element={<SignUpPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/chat" element={<ChatPage />} />
-    </Routes>
+      <Routes>
+        {/* Protected route */}
+        <Route
+          path="/"
+          element={authUser ? <ChatPage /> : <Navigate to="/login" />}
+        />
+
+        {/* Auth routes */}
+        <Route
+          path="/login"
+          element={!authUser ? <LoginPage /> : <Navigate to="/" />}
+        />
+
+        {/* <Route path="/signup" element={<SignUpPage />} /> */}
+
+        <Route
+          path="/signup"
+          element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
+        />
+      </Routes>
+
+      <Toaster/>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
