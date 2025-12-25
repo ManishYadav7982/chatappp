@@ -2,3 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ADD THIS */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+
+/* ADD THIS */
+.react-hot-toast {
+  z-index: 9999 !important;
+}
