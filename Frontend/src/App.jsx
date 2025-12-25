@@ -39,6 +39,7 @@ function App() {
         />
 
         {/* Auth routes */}
+        {/* <Route path="/login" element={<LoginPage />} /> */}
         <Route
           path="/login"
           element={!authUser ? <LoginPage /> : <Navigate to="/" />}
@@ -52,7 +53,16 @@ function App() {
         />
       </Routes>
 
-      <Toaster/>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          style: {
+            maxWidth: "90vw",
+            margin: "0 auto",
+          },
+        }}
+      />
     </div>
   );
 }
