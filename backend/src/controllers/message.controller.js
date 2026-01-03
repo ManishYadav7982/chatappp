@@ -1,6 +1,7 @@
 import { User } from "../models/User.js";
 import { Message } from "../models/message.js";
-import cloudinary from  "../lib/cloudinary.js" ;
+import cloudinary from "../lib/cloudinary.js";
+import { io, getReceiverSocketId } from "../lib/socket.js";
 
 
 export const getAllContacts = async (req, res) => {
@@ -42,47 +43,53 @@ export const getMessagesByChatId = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const { text, image } = req.body;
     const senderId = req.user._id;
-    const { id: receiverId } = req.params;
+    const receiverId = req.params.id;
+    console.log("IMAGE RECEIVED:", image, typeof image);
 
     let imageUrl = null;
+    if (image && typeof image === "string") {
 
-    if (image) {
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
 
-    const newMessage = new Message({
+    const newMessage = await Message.create({
       senderId,
       receiverId,
-      text,
-      imageUrl
+      text: text || "",
+      image: imageUrl || null, //  match frontend
     });
 
-    await newMessage.save();
 
-    res.status(201).json({ message: newMessage });
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId && io) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
+
+    res.status(201).json(newMessage);
   } catch (error) {
-    console.error("Error sending message:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("❌ sendMessage error:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
 
-export const getAllChats = async (req, res) => {
+
+export const getChatPartners = async (req, res) => {
   try {
     const myId = req.user._id;
 
-    // 1️⃣ Find latest message per chat
     const chats = await Message.aggregate([
       {
         $match: {
-          $or: [
-            { senderId: myId },
-            { receiverId: myId }
-          ]
-        }
+          $or: [{ senderId: myId }, { receiverId: myId }],
+        },
       },
       {
         $project: {
@@ -90,54 +97,32 @@ export const getAllChats = async (req, res) => {
             $cond: [
               { $eq: ["$senderId", myId] },
               "$receiverId",
-              "$senderId"
-            ]
+              "$senderId",
+            ],
           },
-          text: 1,
-          imageUrl: 1,
-          createdAt: 1
-        }
+          createdAt: 1,
+        },
       },
-      {
-        $sort: { createdAt: -1 }
-      },
+      { $sort: { createdAt: -1 } },
       {
         $group: {
           _id: "$chatUser",
-          lastMessage: { $first: "$text" },
-          imageUrl: { $first: "$imageUrl" },
-          createdAt: { $first: "$createdAt" }
-        }
+          lastMessageAt: { $first: "$createdAt" },
+        },
       },
-      {
-        $sort: { createdAt: -1 }
-      }
     ]);
 
-    // 2️⃣ Populate user details
-    const userIds = chats.map(chat => chat._id);
+    const userIds = chats.map((c) => c._id);
 
     const users = await User.find(
       { _id: { $in: userIds } },
-      "fullname email avatar"
+      "fullname profilePic"
     );
 
-    const userMap = {};
-    users.forEach(user => {
-      userMap[user._id.toString()] = user;
-    });
-
-    // 3️⃣ Merge chat + user info
-    const finalChats = chats.map(chat => ({
-      user: userMap[chat._id.toString()],
-      lastMessage: chat.lastMessage,
-      imageUrl: chat.imageUrl,
-      createdAt: chat.createdAt
-    }));
-
-    res.status(200).json({ chats: finalChats });
+    res.status(200).json({ chats: users });
   } catch (error) {
-    console.error("Error fetching chats:", error);
+    console.error("getChatPartners error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+

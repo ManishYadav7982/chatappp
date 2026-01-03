@@ -2,7 +2,7 @@ import express from 'express';
 import { getAllContacts } from '../controllers/message.controller.js';
 import { protectRoute } from '../middleware/auth.middleware.js';
 import { getMessagesByChatId, sendMessage } from '../controllers/message.controller.js';
-import { getAllChats } from '../controllers/message.controller.js';
+import { getChatPartners } from '../controllers/message.controller.js';
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ const router = express.Router();
 router.use(protectRoute);
 
 router.get("/contacts", getAllContacts);
-router.get("/chats", getAllChats);
+router.get("/chats", getChatPartners);
 router.get("/:id", getMessagesByChatId);
 router.post('/send/:id', sendMessage);
 

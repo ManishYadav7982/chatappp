@@ -10,14 +10,16 @@ dotenv.config();
 import authRoutes from './routes/auth.route.js';
 import messageRoutes from './routes/message.route.js';
 import { connect } from 'http2';
+import { app, server } from './lib/socket.js';
 
-const app = express();
+
 
 const __dirname = Path.resolve();
 
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json()); // Middleware to parse JSON request bodies
+app.use(express.json({ limit: "10mb" })); // Middleware to parse JSON request bodies
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cors({ origin: process.env.CLIENT_URL , credentials: true })); // Enable CORS
 app.use(cookieparser());
 
@@ -34,8 +36,8 @@ if(process.env.NODE_ENV === 'production'){
   });
 }
 
-app.listen(PORT, () => {
-  console.log('Server is running on port 3000');
+server.listen(PORT, () => {
+  console.log('Server is running on '+ PORT);
   connectDB();
 });
 
