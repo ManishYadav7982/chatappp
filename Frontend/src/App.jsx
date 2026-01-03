@@ -14,7 +14,7 @@ function App() {
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+  }, []);
 
   // ⏳ Optional loading state
   if (isCheckingAuth) {
@@ -22,8 +22,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 relative overflow-hidden flex items-center justify-center">
-      
+    <div className="h-screen w-screen overflow-hidden bg-fuchsia-50 relative flex items-center justify-center">
       {/* Background effects */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500 opacity-20 blur-[120px]" />
