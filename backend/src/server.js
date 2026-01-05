@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
@@ -11,7 +12,10 @@ import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
-const __dirname = path.resolve();
+// 🔴 FIX __dirname FOR ES MODULES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const PORT = process.env.PORT || 5000;
 
 // middlewares
@@ -19,7 +23,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 
-// CORS (production safe)
+// CORS (safe for same-origin prod)
 app.use(
   cors({
     origin: process.env.CLIENT_URL || true,
@@ -31,12 +35,14 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-//  serve frontend (PRODUCTION)
+// ✅ SERVE FRONTEND (PRODUCTION)
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "dist")));
+  const distPath = path.join(__dirname, "../dist");
+
+  app.use(express.static(distPath));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "dist", "index.html"));
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
